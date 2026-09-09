@@ -87,6 +87,36 @@ def sahne_klibi(gorsel, saniye, cfg, cikti, ters=False, kadraj=0):
     return str(cikti)
 
 
+def gecisli_birlestir(klipler, planlanan, gecis, cikti):
+    """Klipleri aralarına çapraz geçiş (dissolve) koyarak tek videoya birleştirir.
+
+    Sert kesme yerine yumuşak geçiş: her klibin sonu bir sonrakinin başıyla
+    `gecis` saniye boyunca karışır. Klipler bu payı karşılamak için zaten
+    uzun render edilmiştir, bu yüzden toplam süre değişmez.
+    """
+    if len(klipler) == 1:
+        return str(klipler[0])
+
+    girisler, zincir, onceki = [], [], "[0:v]"
+    for i, k in enumerate(klipler):
+        girisler += ["-i", str(k)]
+
+    imlec = 0.0
+    for i in range(1, len(klipler)):
+        imlec += planlanan[i - 1]
+        cikis = f"[v{i}]" if i < len(klipler) - 1 else "[out]"
+        zincir.append(
+            f"{onceki}[{i}:v]xfade=transition=fade:duration={gecis:.3f}:"
+            f"offset={max(imlec - gecis, 0):.3f}{cikis}")
+        onceki = cikis
+
+    _calistir(["ffmpeg", "-y", "-v", "error", *girisler,
+               "-filter_complex", ";".join(zincir), "-map", "[out]",
+               "-c:v", "libx264", "-preset", "veryfast", "-crf", "19",
+               "-pix_fmt", "yuv420p", str(cikti)])
+    return str(cikti)
+
+
 def sesleri_birlestir(ses_yollari, bosluk, cikti):
     """Sahne seslerini aralarına sessizlik koyarak birleştirir."""
     girisler, zincir = [], []

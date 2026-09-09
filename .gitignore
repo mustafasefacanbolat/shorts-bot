@@ -6,7 +6,11 @@ __pycache__/
 # Üretilen videolar (her çalıştırmada yeniden oluşur)
 cikti/
 
-# GİZLİ: Google OAuth istemci dosyası — asla repoya girmemeli
+# GİZLİ: bunların hiçbiri asla repoya girmemeli
 client_secret.json
+gizli.sh
 .env
 token.json
+
+# macOS
+.DS_Store

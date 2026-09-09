@@ -72,6 +72,7 @@ video:
   zoom_hizi: 0.0006        # Ken Burns yakınlaşma hızı
   punch_in: true           # aynı görselden 2-3 farklı kadraj çıkar (ek maliyet yok)
   en_uzun_kesme: 4.5       # hiçbir kare bu süreden uzun ekranda kalmasın
+  gecis: 0.30              # kesmeler arası çapraz geçiş süresi (0 = sert kesme)
   rozet: true              # köşede sabit "Momo · Bölüm N" işareti
   kimlik_karti: true       # açılışta 2.6 sn anlatıcının adı ve tanımı
   kimlik_saniye: 2.6
@@ -147,8 +148,7 @@ bitis_karti:
 
 youtube:
   yukle: true
-  gizlilik: "unlisted"      # public | unlisted | private
-                            # ilk haftalar unlisted: sen izleyip beğenince Studio'dan public yap
+  gizlilik: "public"        # public | unlisted | private
   kategori_id: "24"          # 24 = Entertainment
   cocuklar_icin: false
   # Açıklamanın sonuna otomatik eklenir (YouTube sentetik içerik şeffaflığı)

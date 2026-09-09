@@ -185,23 +185,35 @@ def main():
     # ek görsel maliyeti olmadan görsel ritmi ikiye katlanır.
     punch = bool(cfg["video"].get("punch_in", True))
     en_uzun_kesme = float(cfg["video"].get("en_uzun_kesme", 4.5))
-    klipler, onceki = [], 0.0
+    gecis = float(cfg["video"].get("gecis", 0.0))
+
+    # Önce kesme planı: (görsel, süre, kadraj, zoom yönü)
+    plan, onceki = [], 0.0
     for i, (g, bit) in enumerate(zip(gorseller, kesimler)):
         uzunluk = max(0.6, bit - onceki)
-        # Kaç kadraja bölünecek: hiçbir kesme en_uzun_kesme saniyeyi geçmesin.
-        parca = 1
-        if punch:
-            parca = max(1, min(3, int(-(-uzunluk // en_uzun_kesme))))
-        # İLK SAHNE yakın planla açılır: ilk kare izleyiciyi ilk saniyede tutar.
+        parca = max(1, min(3, int(-(-uzunluk // en_uzun_kesme)))) if punch else 1
+        # İLK KESME yakın plan: ilk kare izleyiciyi ilk saniyede tutar.
         sira = [1, 0, 2] if i == 0 else [0, 1, 2]
         pay = uzunluk / parca
         for j in range(parca):
-            klipler.append(video.sahne_klibi(
-                g, pay, cfg, is_dizini / f"klip_{i:02d}{'abc'[j]}.mp4",
-                ters=((i + j) % 2 == 1), kadraj=sira[j % 3]))
+            plan.append((g, pay, sira[j % 3], (i + j) % 2 == 1))
         onceki = bit
+
+    # Geçiş payı: ilk klip hariç her klip `gecis` kadar uzun render edilir,
+    # o fazlalığı çapraz geçiş yutar, toplam süre değişmez.
+    klipler = []
+    for k, (g, sure_, kadraj, ters) in enumerate(plan):
+        klipler.append(video.sahne_klibi(
+            g, sure_ + (gecis if k else 0.0), cfg,
+            is_dizini / f"klip_{k:02d}.mp4", ters=ters, kadraj=kadraj))
+
     print(f"      {len(gorseller)} görsel -> {len(klipler)} kesme "
           f"(~{(kesimler[-1] / max(1, len(klipler))):.1f} sn/kesme)")
+
+    if gecis > 0 and len(klipler) > 1:
+        print(f"      geçişler yumuşatılıyor ({gecis:.2f} sn dissolve)...")
+        klipler = [video.gecisli_birlestir(
+            klipler, [p[1] for p in plan], gecis, is_dizini / "sahneler.mp4")]
     cikti = video.son_montaj(klipler, ses_yolu, altyazi, cfg,
                              is_dizini / f"bolum_{bolum_no:04d}.mp4", is_dizini,
                              muzik_seed=bolum_no, ek_saniye=ek_saniye)
