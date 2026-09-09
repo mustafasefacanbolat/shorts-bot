@@ -252,6 +252,16 @@ def main():
     db.kanon_ekle(kon, seri, senaryo.get("yeni_kanon"))
     print(f"      YAYINDA: https://youtube.com/shorts/{vid}")
 
+    # Instagram Reels — YouTube yüklemesi başarılı olduysa
+    if cfg.get("instagram", {}).get("yayinla"):
+        try:
+            from src import instagram
+            mid = instagram.paylas(cikti, senaryo, cfg)
+            print(f"      INSTAGRAM'DA: medya {mid}")
+        except Exception as e:
+            # Instagram hatası YouTube yayınını geçersiz kılmaz; iş yeşil kalsın
+            print(f"      ! Instagram'a atılamadı ({type(e).__name__}: {str(e)[:200]})")
+
 
 if __name__ == "__main__":
     main()
