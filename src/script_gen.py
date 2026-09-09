@@ -54,12 +54,28 @@ METİN KURALLARI
   "Ormanın en aptal maymunu bendim, kanıtlayayım." /
   "Kimseye söylemediğim bir şey var."
 
-BAŞLIK
-- 40-60 karakter. Sonunda " | Bölüm N".
-- Merak boşluğu bırak ama yalan vaat etme; videoda olmayan şeyi söyleme.
+BAŞLIK (dikkat: burada en çok hata yapılıyor)
+- 35-55 karakter. Sonunda " | Bölüm N".
+- EN ÖNEMLİ KURAL: başlık olayı ÖZETLEMEZ, cevaplanmamış bir soru bırakır.
+  Videoda ne olduğunu söylersen izleyicinin izlemeye sebebi kalmaz.
+- Testi şu: başlığı okuyan biri "e sonra ne oldu?" diye soruyorsa doğru;
+  "tamam anladım" diyorsa yanlış.
+- Bir cümle kur, bir şeyi eksik bırak. Genelde en iyisi son sahnedeki
+  cevapsız andan çıkar, olayın tamamından değil.
+
+  YANLIŞ (olayı anlatıyor, merak bırakmıyor):
+    "Güneşi Yakalamak İsterken Kovuğa Düşmek"
+    "Ormanın En Çılgın Günü"
+    "Momo'nun Ağaçtan Düşüşü"
+  DOĞRU (eksik bırakıyor):
+    "Kovuğun karanlığında biri vardı"
+    "O dala bir daha hiç çıkmadım"
+    "Kimseye anlatmadığım bir şey var"
+    "Kardeşim bağırdı, ben duymadım"
+
 - YASAK: büyük harfle bağırma, "İNANILMAZ", "ŞOK", "asla tahmin edemezsiniz",
-  "Ormanın En ... Günü" gibi içi boş kalıplar.
-- İyi örnek: "O gece dalda benden başka biri vardı | Bölüm 4"
+  başlıkta emoji, "Ormanın En ... Günü" kalıbı, ve başlığın sonunu
+  "...Düşmek / ...Kaçmak" gibi mastarla bitirmek (kuru ve özet gibi durur).
 
 AÇIKLAMA
 - İlk cümle akışta görünen tek satırdır: hikâyeden merak uyandıran bir cümle olsun,

@@ -55,15 +55,23 @@ def sure(yol):
 
 # Aynı görselden çıkarılan kadrajlar: (zoom başlangıç, zoom bitiş, odak x, odak y)
 # Tek bir fotoğraftan üç ayrı "çekim" üretir; ek görsel maliyeti yoktur.
+# Kadrajlar KADEMELİ: geniş -> orta -> yakın. Her kadrajın bitiş zoom'u
+# bir sonrakinin başlangıcına yakın; böylece geçiş "sekme" değil
+# "kameranın yaklaşması" gibi okunur.
 KADRAJLAR = [
-    (1.00, 1.16, 0.50, 0.50),   # 0 - geniş plan
-    (1.34, 1.46, 0.50, 0.38),   # 1 - yakın plan (punch-in), üst-orta
-    (1.16, 1.28, 0.58, 0.60),   # 2 - orta plan, hafif sağa ve aşağı kaydırılmış
+    (1.00, 1.14, 0.50, 0.50),   # 0 - geniş
+    (1.14, 1.30, 0.53, 0.45),   # 1 - orta, hafif yukarı kayarak
+    (1.30, 1.48, 0.50, 0.38),   # 2 - yakın, özneye
 ]
 
 
 def sahne_klibi(gorsel, saniye, cfg, cikti, ters=False, kadraj=0):
-    """Tek görselden, seçilen kadrajla klip üretir."""
+    """Tek görselden, seçilen kadrajla klip üretir.
+
+    ters=True kliplerin zoom yönünü çevirir. ÖNEMLİ: bir sahnenin
+    kadrajları arasında yön DEĞİŞMEMELİ; yön değişirse geçiş
+    yumuşama yerine sekme gibi görünür.
+    """
     W, H = cfg["video"]["cozunurluk"]
     fps = cfg["video"]["fps"]
     hiz = cfg["video"]["zoom_hizi"]
@@ -87,7 +95,7 @@ def sahne_klibi(gorsel, saniye, cfg, cikti, ters=False, kadraj=0):
     return str(cikti)
 
 
-def gecisli_birlestir(klipler, planlanan, gecis, cikti):
+def gecisli_birlestir(klipler, planlanan, gecis, cikti, tipler=None):
     """Klipleri aralarına çapraz geçiş (dissolve) koyarak tek videoya birleştirir.
 
     Sert kesme yerine yumuşak geçiş: her klibin sonu bir sonrakinin başıyla
@@ -105,8 +113,9 @@ def gecisli_birlestir(klipler, planlanan, gecis, cikti):
     for i in range(1, len(klipler)):
         imlec += planlanan[i - 1]
         cikis = f"[v{i}]" if i < len(klipler) - 1 else "[out]"
+        tip = (tipler[i - 1] if tipler and i - 1 < len(tipler) else "fade")
         zincir.append(
-            f"{onceki}[{i}:v]xfade=transition=fade:duration={gecis:.3f}:"
+            f"{onceki}[{i}:v]xfade=transition={tip}:duration={gecis:.3f}:"
             f"offset={max(imlec - gecis, 0):.3f}{cikis}")
         onceki = cikis
 

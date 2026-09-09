@@ -72,7 +72,12 @@ video:
   zoom_hizi: 0.0006        # Ken Burns yakınlaşma hızı
   punch_in: true           # aynı görselden 2-3 farklı kadraj çıkar (ek maliyet yok)
   en_uzun_kesme: 4.5       # hiçbir kare bu süreden uzun ekranda kalmasın
-  gecis: 0.30              # kesmeler arası çapraz geçiş süresi (0 = sert kesme)
+  gecis: 0.55              # geçiş süresi (0 = sert kesme). 0.4-0.7 arası tatlı nokta
+  sahne_gecisleri:         # FARKLI görseller arasında sırayla kullanılır
+    - smoothleft
+    - circleopen
+    - smoothright
+    - fadegrays
   rozet: true              # köşede sabit "Momo · Bölüm N" işareti
   kimlik_karti: true       # açılışta 2.6 sn anlatıcının adı ve tanımı
   kimlik_saniye: 2.6

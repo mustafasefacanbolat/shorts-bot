@@ -187,22 +187,27 @@ def main():
     en_uzun_kesme = float(cfg["video"].get("en_uzun_kesme", 4.5))
     gecis = float(cfg["video"].get("gecis", 0.0))
 
-    # Önce kesme planı: (görsel, süre, kadraj, zoom yönü)
+    # Kesme planı: (görsel, süre, kadraj, zoom yönü, sahne no)
+    # Kural: bir sahnenin kadrajları KADEMELİ ilerler (geniş->orta->yakın)
+    # ve zoom yönü sahne boyunca DEĞİŞMEZ. İkisi birden, geçişlerin
+    # sekme yerine kamera hareketi gibi okunmasını sağlıyor.
     plan, onceki = [], 0.0
     for i, (g, bit) in enumerate(zip(gorseller, kesimler)):
         uzunluk = max(0.6, bit - onceki)
         parca = max(1, min(3, int(-(-uzunluk // en_uzun_kesme)))) if punch else 1
-        # İLK KESME yakın plan: ilk kare izleyiciyi ilk saniyede tutar.
-        sira = [1, 0, 2] if i == 0 else [0, 1, 2]
+        # İlk sahne yakından açılıp geriye çekilir (açılış kancası),
+        # sonraki sahneler geniş plandan özneye yaklaşır.
+        sira = [2, 1, 0] if i == 0 else [0, 1, 2]
+        yon = (i % 2 == 1)                      # yön sahne başına değişir
         pay = uzunluk / parca
         for j in range(parca):
-            plan.append((g, pay, sira[j % 3], (i + j) % 2 == 1))
+            plan.append((g, pay, sira[j % 3], yon, i))
         onceki = bit
 
     # Geçiş payı: ilk klip hariç her klip `gecis` kadar uzun render edilir,
     # o fazlalığı çapraz geçiş yutar, toplam süre değişmez.
     klipler = []
-    for k, (g, sure_, kadraj, ters) in enumerate(plan):
+    for k, (g, sure_, kadraj, ters, _) in enumerate(plan):
         klipler.append(video.sahne_klibi(
             g, sure_ + (gecis if k else 0.0), cfg,
             is_dizini / f"klip_{k:02d}.mp4", ters=ters, kadraj=kadraj))
@@ -211,9 +216,22 @@ def main():
           f"(~{(kesimler[-1] / max(1, len(klipler))):.1f} sn/kesme)")
 
     if gecis > 0 and len(klipler) > 1:
-        print(f"      geçişler yumuşatılıyor ({gecis:.2f} sn dissolve)...")
+        # Aynı görselin kadrajları arasında sade erime (kamera yaklaşıyor hissi),
+        # FARKLI görseller arasında hareketli geçiş (yeni sahneye geçildiği belli olsun).
+        sahne_gecisleri = cfg["video"].get(
+            "sahne_gecisleri", ["smoothleft", "circleopen", "smoothright", "fadegrays"])
+        tipler, s_no = [], 0
+        for k in range(1, len(plan)):
+            if plan[k][4] != plan[k - 1][4]:      # görsel değişiyor
+                tipler.append(sahne_gecisleri[s_no % len(sahne_gecisleri)])
+                s_no += 1
+            else:
+                tipler.append("fade")
+        print(f"      geçişler yumuşatılıyor ({gecis:.2f} sn) — "
+              f"{tipler.count('fade')} erime, {len(tipler) - tipler.count('fade')} hareketli")
         klipler = [video.gecisli_birlestir(
-            klipler, [p[1] for p in plan], gecis, is_dizini / "sahneler.mp4")]
+            klipler, [p[1] for p in plan], gecis, is_dizini / "sahneler.mp4",
+            tipler=tipler)]
     cikti = video.son_montaj(klipler, ses_yolu, altyazi, cfg,
                              is_dizini / f"bolum_{bolum_no:04d}.mp4", is_dizini,
                              muzik_seed=bolum_no, ek_saniye=ek_saniye)
