@@ -161,4 +161,11 @@ youtube:
 
 instagram:
   yayinla: true              # false yaparsan sadece YouTube'a atar
-  etiket_sayisi: 12          # açıklamaya eklenecek hashtag sayısı (IG'de sınır 30)
+  etiket_sayisi: 14          # toplam hashtag sayısı (IG sınırı 30)
+
+  # Instagram'da etiketler YouTube'un aksine keşfe gerçekten katkı sağlıyor,
+  # o yüzden platforma özel birkaç tane ekliyoruz.
+  ek_etiketler: [keşfet, kesfet, reels, masal, hikayeanlatimi]
+
+  # YouTube'a özgü olup Instagram'da anlamsız kalan etiketler
+  cikarilacak_etiketler: [shorts, short, youtubeshorts]

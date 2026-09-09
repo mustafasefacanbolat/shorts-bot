@@ -102,7 +102,15 @@ def aciklama_kur(senaryo, cfg):
     """YouTube açıklamasından Instagram'a uygun bir metin hazırlar."""
     kanal = cfg.get("kanal", {})
     ig = cfg.get("instagram", {})
-    etiketler = senaryo.get("etiketler", [])[:int(ig.get("etiket_sayisi", 12))]
+
+    cikar = {e.lower() for e in ig.get("cikarilacak_etiketler", [])}
+    etiketler, gorulen = [], set()
+    for e in list(senaryo.get("etiketler", [])) + list(ig.get("ek_etiketler", [])):
+        t = e.strip().lstrip("#")
+        if t and t.lower() not in cikar and t.lower() not in gorulen:
+            gorulen.add(t.lower())
+            etiketler.append(t)
+    etiketler = etiketler[:int(ig.get("etiket_sayisi", 14))]
     satirlar = [
         (senaryo.get("aciklama_kanca") or senaryo.get("baslik", "")).strip(),
         "",
