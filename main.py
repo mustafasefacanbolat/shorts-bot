@@ -19,6 +19,7 @@ from src import db, script_gen, tts, images, subtitles, video, align
 
 KOK = Path(__file__).resolve().parent
 KESIM_PAYI = 0.12     # sahne geçişi, kelimenin bitiminden bu kadar sonra olsun
+BOSLUK = 0.35         # sahneler arası nefes payı (saniye)
 
 
 def _zamanla(tam_metin, ses_yolu, sure_, cfg):
@@ -90,37 +91,40 @@ def main():
             sonraki=bolum_no + 1)
 
     # ------------------------------------------------------------ 2) Seslendirme
-    # ÖNEMLİ: tüm metin TEK istekte seslendiriliyor. Hem ücretsiz kotayı
-    # 8 kat verimli kullanır, hem de anlatım bütün metni gördüğü için
-    # tonlama ve duraklamalar daha doğal olur.
-    print("[2/6] Seslendiriliyor (tek istek)...")
+    # Her sahne AYRI istekle seslendirilir. Tek istekte birleştirmek
+    # (kota tasarrufu için denendi) uzun metinlerde modelin anlatımı
+    # yarıda bırakmasına yol açıyor: ses dosyası uzun çıkıyor ama
+    # ikinci sahneden sonrası sessiz kalıyor. Sahne başına istek hem
+    # bunu engelliyor hem de sahne sınırlarını tahmine bırakmıyor.
+    print("[2/6] Seslendiriliyor...")
     parcalar = [s["anlatim"].strip() for s in sahneler] + ([kapanis] if kapanis else [])
-    tam_metin = "\n\n".join(parcalar)
-    ses_yolu = is_dizini / "ses.mp3"
-    _, ham_kelimeler = tts.seslendir(tam_metin, cfg, ses_yolu)
-    ses_suresi = video.sure(ses_yolu)
+    ses_yollari, kelimeler, sahne_sinirlari = [], [], []
+    imlec, kapanis_bas = 0.0, None
 
-    kelimeler = ham_kelimeler and align.hizala(tam_metin, ham_kelimeler, ses_suresi)
-    if not kelimeler:
-        kelimeler = _zamanla(tam_metin, ses_yolu, ses_suresi, cfg)
+    for i, metin in enumerate(parcalar):
+        yol = is_dizini / f"ses_{i:02d}.mp3"
+        _, ham = tts.seslendir(metin, cfg, yol)
+        d = video.sure(yol)
+        sahne_mi = i < len(sahneler)
+
+        if sahne_mi:
+            k = align.hizala(metin, ham, d) if ham else _zamanla(metin, yol, d, cfg)
+            kelimeler += [{"bas": w["bas"] + imlec, "bit": w["bit"] + imlec,
+                           "kelime": w["kelime"]} for w in k]
+            sahne_sinirlari.append((imlec, imlec + d))
+            print(f"      sahne {i+1}: {d:.1f} sn, {len(k)} kelime")
+        else:
+            kapanis_bas = imlec
+            print(f'      kapanış: "{metin}" ({d:.1f} sn)')
+
+        ses_yollari.append(yol)
+        imlec += d + BOSLUK
+
+    ses_yolu = video.sesleri_birlestir(ses_yollari, BOSLUK, is_dizini / "ses.m4a")
+    ses_suresi = video.sure(ses_yolu)
+    konusma_suresi = sahne_sinirlari[-1][1]
     (is_dizini / "kelimeler.json").write_text(
         json.dumps(kelimeler, ensure_ascii=False), encoding="utf-8")
-
-    # her parçanın (sahne / kapanış) ses içindeki başlangıç-bitiş anı
-    sinirlar, imlec = [], 0
-    for p in parcalar:
-        n = len([w for w in p.split() if w])
-        dilim = kelimeler[imlec:imlec + n]
-        sinirlar.append((dilim[0]["bas"], dilim[-1]["bit"]) if dilim
-                        else (ses_suresi, ses_suresi))
-        imlec += n
-    sahne_sinirlari = sinirlar[:len(sahneler)]
-    konusma_suresi = sahne_sinirlari[-1][1]
-    kapanis_bas = sinirlar[-1][0] if kapanis else None
-    for i, (b, s) in enumerate(sahne_sinirlari):
-        print(f"      sahne {i+1}: {b:.1f}-{s:.1f} sn")
-    if kapanis:
-        print(f'      kapanış: "{kapanis}" ({kapanis_bas:.1f} sn)')
     print(f"      ses toplam: {ses_suresi:.1f} sn")
 
     # video, sesin bitiminden sonra bitiş kartı için biraz daha sürsün
@@ -151,7 +155,7 @@ def main():
               "brew unlink ffmpeg && brew link --force --overwrite ffmpeg-full")
     else:
         print("[4/6] Altyazı hazırlanıyor...")
-        sahne_kelime_sayisi = sum(len(p.split()) for p in parcalar[:len(sahneler)])
+        sahne_kelime_sayisi = len(kelimeler)   # kapanışın kelimeleri zaten dahil değil
         bitis = None
         if bk.get("aktif"):
             bitis = {

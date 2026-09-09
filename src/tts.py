@@ -67,20 +67,27 @@ def _gemini_tts(metin, cfg, cikti_yolu, deneme_sayisi=3):
             continue
         if y.status_code != 200:
             raise RuntimeError(f"Gemini TTS {y.status_code}: {y.text[:300]}")
+        # Gemini sesi BİRDEN FAZLA parça halinde dönebilir; hepsini birleştir.
+        # (Sadece ilk parçayı almak metnin yarıda kesilmesine yol açıyor.)
         parcalar = y.json()["candidates"][0]["content"]["parts"]
+        pcm, hiz = bytearray(), 24000
         for p in parcalar:
             veri = p.get("inlineData") or p.get("inline_data")
-            if veri and veri.get("data"):
-                mime = veri.get("mimeType") or veri.get("mime_type") or ""
-                hiz = 24000
-                if "rate=" in mime:
-                    try:
-                        hiz = int(mime.split("rate=")[1].split(";")[0])
-                    except ValueError:
-                        pass
-                _pcm_to_mp3(base64.b64decode(veri["data"]), hiz, cikti_yolu)
-                return str(cikti_yolu)
-        raise RuntimeError("Gemini TTS ses döndürmedi")
+            if not (veri and veri.get("data")):
+                continue
+            mime = veri.get("mimeType") or veri.get("mime_type") or ""
+            if "rate=" in mime:
+                try:
+                    hiz = int(mime.split("rate=")[1].split(";")[0])
+                except ValueError:
+                    pass
+            pcm += base64.b64decode(veri["data"])
+        if not pcm:
+            raise RuntimeError("Gemini TTS ses döndürmedi")
+        if len(parcalar) > 1:
+            print(f"      ({len(parcalar)} ses parçası birleştirildi)")
+        _pcm_to_mp3(bytes(pcm), hiz, cikti_yolu)
+        return str(cikti_yolu)
     raise son or RuntimeError("Gemini TTS başarısız")
 
 
@@ -121,18 +128,48 @@ def _edge_tts(metin, cfg, cikti_yolu):
 
 
 # ---------------------------------------------------------------- dış kapı
+def ses_suresi(yol):
+    c = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration",
+                        "-of", "default=nw=1:nk=1", str(yol)],
+                       capture_output=True, text=True)
+    try:
+        return float(c.stdout.strip())
+    except ValueError:
+        return 0.0
+
+
 def seslendir(metin, cfg, cikti_yolu):
     """metin -> (mp3 yolu, kelime zamanlamaları veya [] )
 
     Zamanlama boş dönerse hizalamayı align.py yapar.
+
+    EMNİYET: üretilen ses, metnin uzunluğuna göre beklenenden belirgin
+    kısaysa seslendirme yarıda kesilmiş demektir. Bu durumda hata sayılır
+    ve yedek motora düşülür — yarım anlatımlı video yayına çıkmasın.
     """
+    kelime = len([w for w in metin.split() if w])
+    hizi = float(cfg.get("video", {}).get("kelime_hizi", 1.7))
+    beklenen = kelime / max(hizi, 0.1)
+    alt_sinir = beklenen * 0.6
+
     saglayici = cfg["ses"].get("saglayici", "gemini")
     if saglayici == "gemini":
         try:
             _gemini_tts(metin, cfg, cikti_yolu)
+            d = ses_suresi(cikti_yolu)
+            if d < alt_sinir:
+                raise RuntimeError(
+                    f"ses çok kısa: {d:.1f} sn, {kelime} kelime için ~{beklenen:.0f} sn "
+                    f"beklenirdi — anlatım yarıda kesilmiş")
             return str(cikti_yolu), []          # zamanlama Whisper'dan gelecek
         except Exception as e:
             print(f"      ! Gemini TTS kullanılamadı ({type(e).__name__}: "
-                  f"{str(e)[:120]}) — edge-tts'e geçiliyor")
+                  f"{str(e)[:160]}) — edge-tts'e geçiliyor")
+
     kelimeler = _edge_tts(metin, cfg, cikti_yolu)
+    d = ses_suresi(cikti_yolu)
+    if d < alt_sinir:
+        raise RuntimeError(
+            f"Seslendirme yarım kaldı: {d:.1f} sn üretildi, ~{beklenen:.0f} sn "
+            f"beklenirdi. Video üretilmedi — sorun çözülmeden yayın yapılmasın.")
     return str(cikti_yolu), kelimeler
