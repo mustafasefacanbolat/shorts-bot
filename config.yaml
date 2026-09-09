@@ -1,0 +1,155 @@
+# ============================================================
+#  Kanal konfigürasyonu — tek dokunacağın dosya burası
+# ============================================================
+
+kanal:
+  ad: "Fısıltı Ormanı"
+  handle: "@fisiltiorman"
+
+seri:
+  # Serinin kimliği (veritabanında bu isimle takip edilir)
+  ad: "momo-orman-anilari"
+  dil: "tr"
+  anlatici_adi: "Momo"
+  anlatici_tanimi: "yaşlı bir orman maymunu"
+
+  # ---- KARAKTER VE DÜNYA ----
+  # Senaryo motoru her bölümde bunu okur; tutarlılığın kaynağı burasıdır.
+  konsept: |
+    ANLATICI: Momo. Yaşlı bir orman maymunu, türünün ölçüsüne göre çok yaşlı.
+    Ağzının çevresi ve kaşları gümüş grisi, sol kulağının ucunda eski bir çentik var
+    (bunun hikâyesini ileride anlatacak). Kehribar rengi, yorgun ama şen gözler.
+
+    YAŞADIĞI YER: Ormanın sis çukurundaki devrilmiş dev kayın ağacının kovuğu.
+    Momo oraya "Kuytu" der. Kanopideki tek açıklığa "Gökyüzü Deliği" der;
+    ormanda saati oradan gelen ışıkla anlar.
+
+    GEÇMİŞİ: Gençliğinde kardeşi Tepe'yle ormanın kuzey sırtında dolaşırdı.
+    Tepe bir fırtına gecesinden sonra bir daha görünmedi; Momo bunu nadiren,
+    dolaylı anar. İlk arkadaşı Kül adında yaşlı bir kargaydı; ondan
+    "yukarıdan bakmayı" öğrendi.
+
+    ANLATIM: Momo geriye dönüp tek bir anıyı anlatır. Diyalog kurmaz;
+    diğer hayvanlar konuşmaz, Momo onların davranışını yorumlar.
+    Her bölüm kendi içinde tamamlanır ama sonunda bir kapı aralık kalır.
+
+    MİZAH: Momo gençliğindeki haliyle açıkça dalga geçer. Kendini olduğundan
+    cesur sanan, sonra rezil olan bir gencin anılarını anlatan yaşlı adam gibi.
+    Kuru, sıcak, kendine dönük bir mizah — kimseyi küçümsemez, acıtmaz.
+    Hüzünlü anlarda mizahı bırakır; her şeye şaka katmaz.
+
+    SINIRLAR: Şiddet, korku, kan, politika yok. Kayıp ve hüzün dolaylı anılır,
+    travmatik anlatılmaz. 13 yaş ve üzeri herkese uygun.
+
+  # Seriye baştan sabitlenen olgular. İlk çalıştırmada veritabanına yazılır;
+  # senaryo motoru bunlarla çelişemez. Sonraki bölümler buraya yenilerini ekler.
+  baslangic_kanonu:
+    - "Momo yaşlı bir orman maymunudur, sol kulağının ucunda eski bir çentik vardır"
+    - "Momo devrilmiş dev kayın ağacının kovuğunda yaşar, oraya Kuytu der"
+    - "Kanopideki tek açıklığa Gökyüzü Deliği denir, Momo saati oradan anlar"
+    - "Momo'nun kardeşi Tepe bir fırtına gecesinden sonra kayboldu"
+    - "Kül adında yaşlı bir karga Momo'nun ilk arkadaşıydı"
+    - "Hayvanlar konuşmaz; Momo sadece kendi anılarını anlatır"
+
+  # Görsellerde Momo'nun HER KAREDE aynı görünmesi için sabit tarif (İngilizce).
+  karakter_gorunumu: >
+    an elderly monkey with dense dark-brown fur, silver-grey fur around the muzzle
+    and brows, warm amber eyes, a small old notch on the tip of the left ear,
+    slightly hunched posture, weathered expressive hands
+
+  # Tüm görsellerin ortak görünümü
+  gorsel_stil: >
+    lush temperate rainforest, mossy fallen beech trunks, low drifting fog,
+    warm golden light filtering through the canopy, muted earthy color palette,
+    cinematic wildlife photography, vertical 9:16 composition
+
+video:
+  cozunurluk: [1080, 1920]
+  fps: 30
+  sahne_sayisi: 5          # görsel sayısı = sahne sayısı (maliyet buradan)
+  hedef_saniye: 60         # 60 sn altında kalmak Shorts akışında avantajlı
+  kelime_hizi: 1.7         # anlatıcının saniyede kaç kelime okuduğu (süre hesabı için)
+  zoom_hizi: 0.0006        # Ken Burns yakınlaşma hızı
+  punch_in: true           # aynı görselden 2-3 farklı kadraj çıkar (ek maliyet yok)
+  en_uzun_kesme: 4.5       # hiçbir kare bu süreden uzun ekranda kalmasın
+  rozet: true              # köşede sabit "Momo · Bölüm N" işareti
+  kimlik_karti: true       # açılışta 2.6 sn anlatıcının adı ve tanımı
+  kimlik_saniye: 2.6
+  muzik: "assets/muzik"      # klasör: her bölümde sıradaki parça çalar (tek dosya da olur)
+  muzik_seviyesi: 0.16
+  muzik_kisilsin: true       # konuşma varken müzik otomatik kısılsın (ducking)
+  ortam_sesi: "assets/ortam/orman.mp3"   # sürekli çalan orman dokusu (kısılmaz)
+  ortam_seviyesi: 1.0        # dosya zaten çok kısık üretildi; 0 = kapalı
+
+ses:
+  saglayici: "gemini"        # gemini (insansı, yönerge alır) | edge (yedek)
+
+  # --- Gemini TTS ---
+  model: "gemini-2.5-flash-preview-tts"
+  gemini_ses: "Charon"       # orta yaş, sakin, derin erkek
+  # Alternatifler: Iapetus (berrak), Rasalgethi (bilgilendirici),
+  # Algieba (yumuşak), Sulafat (sıcak), Kore / Aoede (kadın)
+  gemini_stil: >
+    Aşağıdaki metni, ormanı yıllardır tanıyan sakin ve ölçülü bir erkek
+    anlatıcı gibi seslendir. Acele etme, cümle aralarında kısa dur,
+    sıcak ve doğal bir tonda konuş, abartılı vurgu yapma.
+    Metni olduğu gibi oku, hiçbir şey ekleme:
+
+  # --- edge-tts yedeği (Gemini kotası dolarsa devreye girer) ---
+  voice: "tr-TR-AhmetNeural"
+  hiz: "+8%"
+  perde: "-2Hz"
+
+altyazi:
+  aktif: true
+  senkron: "whisper"         # whisper (kelime kelime kusursuz) | esit (hızlı, yaklaşık)
+  whisper_model: "base"      # base yeterli; "small" daha isabetli ama yavaş
+  kelime_grubu: 3          # ekranda aynı anda kaç kelime
+  punto: 78
+  renk: "&H00FFFFFF"       # beyaz
+  vurgu_rengi: "&H0000E5FF" # sarı-turuncu (BGR)
+  kenarlik: 6
+  alt_bosluk: 420          # ekranın altından yükseklik (px)
+
+metin_uretimi:
+  saglayici: "gemini"                 # gemini | groq
+  model: "gemini-flash-latest"
+  # Groq kullanacaksan: saglayici: groq, model: "llama-3.3-70b-versatile"
+
+gorsel_uretimi:
+  saglayici: "gemini"                 # gemini (en gerçekçi) | pollinations | yerel
+  gemini_model: "gemini-3.1-flash-image"
+  boyut: "2K"                         # punch-in yakın kadrajda netlik için 2K
+  # Gemini kotası dolarsa otomatik Pollinations'a, o da olmazsa
+  # degrade arka plana düşer; üretim hiçbir koşulda durmaz.
+  model: "flux"                       # Pollinations modeli (yedek)
+  genislik: 896                       # Pollinations çözünürlüğü (9:16)
+  yukseklik: 1568
+
+bitis_karti:
+  aktif: true
+  saniye: 3.2                # kapanış sesi yoksa eklenecek süre
+  metin: "Devamı için TAKİP ET"
+  alt_metin: "{handle} · Bölüm {sonraki} yarın 13:00'te"
+  punto: 82
+
+  # Kapanış cümlesi anlatıcının sesiyle okunur.
+  # Her bölümde sıradaki cümle kullanılır; hepsi aynı olursa
+  # YouTube'un "şablon içerik" sinyallerinden biri tetiklenir.
+  seslendir: true
+  cumleler:
+    - "Gerisini yarın anlatacağım. {kanal}'nı takip etmeyi unutma."
+    - "Bu hikâyenin devamı var. Takip edersen yarın burada buluşuruz."
+    - "Yarın yine bu saatte, ormanın başka bir anısıyla. Takipte kal."
+    - "Bir sonraki bölümü kaçırmak istemezsen, takip etmen yeterli."
+    - "Ormanın hafızası derindir. Yarın devam ediyoruz, {kanal}'nda."
+    - "Kalanı yarına. Takip et de anlatmaya devam edeyim."
+
+youtube:
+  yukle: true
+  gizlilik: "unlisted"      # public | unlisted | private
+                            # ilk haftalar unlisted: sen izleyip beğenince Studio'dan public yap
+  kategori_id: "24"          # 24 = Entertainment
+  cocuklar_icin: false
+  # Açıklamanın sonuna otomatik eklenir (YouTube sentetik içerik şeffaflığı)
+  seffaflik_notu: "Bu videonun görselleri ve seslendirmesi yapay zekâ ile üretilmiştir."

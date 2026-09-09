@@ -1,0 +1,12 @@
+# Python sanal ortamı (GitHub'a gitmemeli, çok büyük)
+.venv/
+__pycache__/
+*.pyc
+
+# Üretilen videolar (her çalıştırmada yeniden oluşur)
+cikti/
+
+# GİZLİ: Google OAuth istemci dosyası — asla repoya girmemeli
+client_secret.json
+.env
+token.json
